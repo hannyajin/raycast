@@ -2,7 +2,7 @@
 
   console.log("script loaded");
 
-  var width = 320;
+  var width = 240;
   var height = (width * 9 / 16) | 0;
 
   var appEl = document.getElementById('app');
@@ -134,7 +134,7 @@
     this.height = height;
   };
 
-  var camera = new Camera(10, 14, 60, 90);
+  var camera = new Camera(width / 16, height / 16, 60, 90);
   var screen = new Screen(width, height);
   var map = new Map((width / 8) | 0, (height / 8) | 0);
   map.randomize();
@@ -197,6 +197,7 @@
             };
             // calculate offset
             wallOffset = y - Math.floor(y); // can it be this simple? ;V
+            break;
           };
         };
 
@@ -235,6 +236,7 @@
               y: y
             };
             wallOffset = x - Math.floor(x); // can it be this simple? ;V
+            break;
           };
         };
 
@@ -401,12 +403,10 @@
             this.ctx.fillRect(xx, yy, ww, hh);
           } else {
             // draw slice from an image (based on where the ray hit)
-            var sx = (ray.wallOffset * texW) % (texW - 1); // we don't have this info yet
+            var sx = (ray.wallOffset * texW) % (texW - 1); 
             var sy = 0;
             var sw = 1; // hmm
             var sh = texH;
-
-            //console.log(sx);
 
             this.ctx.drawImage(wallTexture, sx, sy, sw, sh, xx, yy, ww, hh);
           };
