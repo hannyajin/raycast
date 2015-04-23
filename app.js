@@ -93,6 +93,14 @@
     this.y = y;
     this.fov = fov; // field of view (angle of visibility, kind of)
     this.dir = dir;
+
+    this.lastState = { // used for camera auto wobble when AFK
+      dir: this.dir,
+      x: this.x,
+      y: this.y
+    };
+    this.wobbleTimeout = null;
+    this.autoWobble = true;
   };
   Camera.prototype = {
     rotate: function (rot) {
@@ -123,10 +131,27 @@
     tick: function () {
       this.keyboard();
 
-      return;
-      var amount = Math.PI / 6;
-      // auto wobble the camera
-      this.dir = (Math.sin(ticks / 120) * amount) * 180 / Math.PI;
+      if (this.x !== this.lastState.x) {
+        this.autoWobble = false;
+        clearTimeout(this.wobbleTimeout);
+        var self = this;
+        this.wobbleTimeout = setTimeout(function() {
+          self.autoWobble = true;
+        }, 3000);
+      }
+
+      this.lastState = { // used for camera auto wobble when AFK
+        dir: this.dir,
+        x: this.x,
+        y: this.y
+      }
+
+      if (this.autoWobble) {
+        // auto wobble the camera when idle
+        var amount = Math.PI / 600;
+        var delay = 66;
+        this.dir += (Math.sin(ticks / delay) * amount) * 180 / Math.PI;
+      };
     }
   };
 
@@ -350,7 +375,8 @@
 
   var wallTexture = new Image();
   wallTexture.src = "http://fc06.deviantart.net/fs31/f/2008/227/7/8/Seamless_Brick_Wall_Texture_by_cfrevoir.jpg";
-  wallTexture.src = "http://www.mocap-dancer.com/worlds/imvu/MDT/MDT-site-pictures/MDT-Long-raid-wall-06-sm.jpg"
+  wallTexture.src = "http://www.mocap-dancer.com/worlds/imvu/MDT/MDT-site-pictures/MDT-Long-raid-wall-06-sm.jpg";
+  wallTexture.src = "wallTex.jpg";
 
   var drawTexture = true;
 
