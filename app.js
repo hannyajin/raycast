@@ -2,7 +2,7 @@
 
   console.log("script loaded");
 
-  var width = 240;
+  var width = 120 * 2;
   var height = (width * 9 / 16) | 0;
 
   var appEl = document.getElementById('app');
@@ -123,6 +123,7 @@
     tick: function () {
       this.keyboard();
 
+      return;
       var amount = Math.PI / 6;
       // auto wobble the camera
       this.dir = (Math.sin(ticks / 120) * amount) * 180 / Math.PI;
@@ -135,7 +136,7 @@
   };
 
   var camera = new Camera(width / 16, height / 16, 60, 90);
-  var screen = new Screen(width, height);
+  var screen = new Screen(width / 2, height / 2);
   var map = new Map((width / 8) | 0, (height / 8) | 0);
   map.randomize();
 
@@ -349,6 +350,7 @@
 
   var wallTexture = new Image();
   wallTexture.src = "http://fc06.deviantart.net/fs31/f/2008/227/7/8/Seamless_Brick_Wall_Texture_by_cfrevoir.jpg";
+  wallTexture.src = "http://www.mocap-dancer.com/worlds/imvu/MDT/MDT-site-pictures/MDT-Long-raid-wall-06-sm.jpg"
 
   var drawTexture = true;
 
@@ -363,7 +365,7 @@
     this.ctx.fillStyle = "#000";
     this.ctx.fillRect(0, 0, screen.width, screen.height);
 
-    var wallHeight = 128 * 2;
+    var wallHeight = 128
 
     this.render = function() {
       // clear screen
@@ -390,7 +392,7 @@
 
         var wh = wallHeight / d;
 
-        var range = 14;
+        var range = Math.sqrt(map.size) | 0;
         if (d < range) {
           var xx = i;
           var yy = ((screen.height - wh) / 2);
@@ -417,7 +419,7 @@
           var n = d / range;
           this.ctx.globalAlpha = (n);
           this.ctx.fillStyle = "#000";
-          this.ctx.fillRect(xx, yy, ww, hh);
+          this.ctx.fillRect(xx, yy - 1, ww, hh + 2);
           this.ctx.restore();
         };
       };
