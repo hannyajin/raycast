@@ -1,4 +1,6 @@
 ;(function() {
+
+  // configure stats.js
   var stats = new Stats();
   stats.setMode(0);
   stats.domElement.style.position = 'absolute';
@@ -383,6 +385,7 @@
   wallTexture.src = "http://fc06.deviantart.net/fs31/f/2008/227/7/8/Seamless_Brick_Wall_Texture_by_cfrevoir.jpg";
   wallTexture.src = "http://www.mocap-dancer.com/worlds/imvu/MDT/MDT-site-pictures/MDT-Long-raid-wall-06-sm.jpg";
   wallTexture.src = "wallTex.jpg";
+  wallTexture.onload = init;
 
   var drawTexture = true;
 
@@ -458,18 +461,149 @@
     };
   };
 
-  var Renderer = new Renderer3D();
+  function Renderer3D_PIXI() {
+    var renderer = new PIXI.CanvasRenderer(screen.width, screen.height);
+    //var renderer = new PIXI.WebGLRenderer(screen.width, screen.height, {antialias: true});
+    renderer.view.style.width = "100%";
+    appEl.appendChild(renderer.view);
 
+    var stage = new PIXI.Container();
+
+    var drawTexture = true;
+
+    var wallTex = PIXI.Texture.fromImage("wallTex.jpg");
+    var wallHeight = 128;
+
+    var spacing = camera.fov / screen.width;
+    var wallTextures = [];
+    // create texture slices of the texture to use in Sprites
+    for (var x = 0; x < wallTexture.width; x++) {
+      var base = wallTex.baseTexture;
+      var frame = {
+        x: x, y: 0, width: 1, height: wallTexture.height
+      };
+      var tex = new PIXI.Texture(base, frame);
+      wallTextures.push(tex);
+    };
+    console.log(wallTextures.length);
+
+    var wallSprites = [];
+    for (var x = 0; x < screen.width; x++) {
+      var spr = new PIXI.Sprite(wallTextures[0]);
+      spr.width = 1;
+      spr.height = 1;
+      spr.x = x;
+      spr.y = 0;
+      wallSprites.push(spr);
+      stage.addChild(spr);
+    };
+
+    var g = new PIXI.Graphics();
+    stage.addChild(g);
+
+    this.render = function() {
+      g.clear();
+      g.beginFill(0xbbcc66);
+
+      // clear screen
+      //for (var i = 0; i < stage.children.length; i++) {
+      //  var child = stage.getChildAt(0);
+      //  stage.removeChild(child);
+      //};
+
+      var spacing = camera.fov / screen.width;
+
+      var texW = wallTexture.width;
+      var texH = wallTexture.height;
+
+      var rays = castRays(camera, screen, map);
+      for (var i = 0; i < rays.length; i++) {
+
+        // for every ray draw a slice of an image/texture/rectangle
+        // and scale its height based on how far away it is
+        var ray = rays[i];
+        var d = Math.sqrt(ray.distance2);
+
+        // fish-eye fix
+        var angle = camera.dir + i * spacing;
+        var cdir = (camera.dir + camera.fov / 2 - angle + 360) % 360;
+        var crad = cdir * Math.PI / 180;
+        d = d * Math.cos(crad);
+
+        var wh = wallHeight / d;
+
+        var range = Math.sqrt(map.size) | 0;
+        var xx = i;
+        var yy = ((screen.height - wh) / 2);
+        var ww = 1;
+        var hh = wh;
+        if (d < range) {
+          // draw slice
+          if (!drawTexture) {
+            //this.ctx.fillStyle = "blue";
+            //this.ctx.fillRect(xx, yy, ww, hh);
+            g.drawRect(xx, yy, ww, hh);
+          } else {
+            // draw slice from an image (based on where the ray hit)
+            var sx = (ray.wallOffset * texW) % (texW - 1); 
+            var sy = 0;
+            var sw = spacing; // hmm
+            var sh = texH;
+
+            var spr = wallSprites[i];
+            spr.visible = true;
+            spr.y = yy;
+            spr.height = hh;
+            spr.texture = wallTextures[sx | 0];
+
+            //this.ctx.drawImage(wallTexture, sx, sy, sw, sh, xx, yy, ww, hh);
+            //var spr = new PIXI.Sprite(wallTextures[sx | 0]);
+            //spr.x = xx;
+            //spr.y = yy;
+            //spr.height = hh;
+            //spr.width = ww;
+            //stage.addChild(spr);
+          };
+
+          // draw an alphaed "shadow" slice on top
+          // based on how far it is
+          //this.ctx.save();
+          //var n = d / range;
+          //this.ctx.globalAlpha = (n);
+          //this.ctx.fillStyle = "#000";
+          //this.ctx.fillRect(xx, yy - 1, ww, hh + 2);
+          //this.ctx.restore();
+          var n = (d / range) ;
+          if (n > 1) n = 1;
+          g.beginFill(0, n || 1);
+          g.drawRect(xx, yy - 1, ww, hh + 2);
+          g.beginFill(0xbbcc66); // set back to rectangle drawing color
+        } else {
+          var spr = wallSprites[i];
+          spr.visible = false;
+        };
+      };
+
+      // draw an alphaed "shadow" rectangle slice on top
+      // based on how far it is
+      g.endFill();
+      renderer.render(stage);
+      console.log("stage rendered: %s", stage.children.length);
+    };
+  };
+
+  var Renderer = null;
 
   function tick() {
     ticks++;
     camera.tick();
   };
 
-  var FPS = 60;
+  var FPS = 70;
   var msPerFrame = (1000 / FPS) | 0;
 
   var raf = false;
+
   function animate() {
     stats.begin();
     render();
@@ -479,6 +613,13 @@
 
     raf ? requestAnimationFrame(animate) : setTimeout(animate, msPerFrame);
   };
-  raf ? requestAnimationFrame(animate) : setTimeout(animate, msPerFrame);
+
+
+  // init after walltextures have loaded
+  function init() {
+    //Renderer = new Renderer3D();
+    Renderer = new Renderer3D_PIXI();
+    raf ? requestAnimationFrame(animate) : setTimeout(animate, msPerFrame);
+  };
 
 })();
