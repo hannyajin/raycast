@@ -466,10 +466,10 @@
     camera.tick();
   };
 
-  var FPS = 60;
+  var FPS = 50;
   var msPerFrame = (1000 / FPS) | 0;
 
-  var raf = false;
+  var raf = true;
   function animate() {
     stats.begin();
     render();

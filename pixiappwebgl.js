@@ -462,8 +462,8 @@
   };
 
   function Renderer3D_PIXI() {
-    var renderer = new PIXI.CanvasRenderer(screen.width, screen.height);
-    //var renderer = new PIXI.WebGLRenderer(screen.width, screen.height, {antialias: true});
+    //var renderer = new PIXI.CanvasRenderer(screen.width, screen.height);
+    var renderer = new PIXI.WebGLRenderer(screen.width, screen.height, {antialias: true});
     renderer.view.style.width = "100%";
     appEl.appendChild(renderer.view);
 
@@ -599,10 +599,10 @@
     camera.tick();
   };
 
-  var FPS = 50;
+  var FPS = 300;
   var msPerFrame = (1000 / FPS) | 0;
 
-  var raf = true;
+  var raf = false;
 
   function animate() {
     stats.begin();
